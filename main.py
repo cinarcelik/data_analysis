@@ -12,8 +12,12 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler
+from timeit import default_timer as timer
 
 from bs4 import BeautifulSoup
+
+timer_start = timer()
+
 
 # Ignore SSL certificate errors:
 ctx = ssl.create_default_context()
@@ -128,3 +132,6 @@ for tag in soup.find_all("tr"):
         VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )''', (design_name, award_type_id, category_id, design_img_small_link, design_page, designer_id, designer_page, studio_id))
 
 conn.commit()
+
+timer_end = timer()
+print(f"Code executed in: {timer_end - timer_start} seconds.")
