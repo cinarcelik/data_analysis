@@ -1,25 +1,34 @@
+"""
+Written by Çınar Çelik.
+Turkey - 2020
+"""
 
-# award_count_total = 0
-# platinum_award_count = 0
-# golden_award_count = 0
-# silver_award_count = 0
-# bronze_award_count = 0
-# regular_award_count = 0
+import sqlite3
+from timeit import default_timer as timer
 
-# print("=========================================")
-# print(f"Category: {category}")
-# print(f"Award Type: {award_type} Award")
-# print(f"Design Name: {design_name}")
-# print(f"Design Image: {design_img_small_link}")
-# print(f"Design Page: {design_page}")
-# print(f"Designer: {designer_name}")
-# print(f"Designer Page: {designer_page}")
-# print(f"Studio/Client/Brand: {studio_name}")
-# print("=========================================\n")
+timer_start = timer()
 
-# print(f"Total Award Count: {award_count_total}")
-# print(f"Platinum Award Count: {platinum_award_count}")
-# print(f"Golden Award Count: {golden_award_count}")
-# print(f"Silver Award Count: {silver_award_count}")
-# print(f"Bronze Award Count: {bronze_award_count}")
-# print(f"Regular Award Count: {regular_award_count}")
+conn = sqlite3.connect('data_raw.sqlite')
+cur = conn.cursor()
+
+cur.execute('''SELECT Designs.design_name,
+                      Awards.award_type, 
+                      Categories.category_name, 
+                      Designers.designer_name,
+                      Studios.studio_name
+               FROM Designs JOIN Awards JOIN Categories JOIN Designers JOIN Studios
+               ON Designs.award_type_id = Awards.id
+               AND Designs.category_id = Categories.id
+               AND Designs.designer_id = Designers.id
+               AND Designs.studio_id = Studios.id''')
+
+count = 0
+for row in cur:
+    print(row)
+    count = count + 1
+print(f"\nDumping ended successfully.\n{count} rows counted.")
+
+cur.close()
+
+timer_end = timer()
+print(f"Code executed in: {timer_end - timer_start} seconds.")
