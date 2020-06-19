@@ -13,6 +13,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler
+from timeit import default_timer as timer
 
 from bs4 import BeautifulSoup
 ```
