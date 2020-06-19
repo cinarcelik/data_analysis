@@ -12,7 +12,6 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler
-from time import sleep
 
 from bs4 import BeautifulSoup
 
@@ -21,7 +20,50 @@ ctx = ssl.create_default_context()
 ctx.check_hostname = False
 ctx.verify_mode = ssl.CERT_NONE
 
-# Actual URL for data:
+conn = sqlite3.connect('designs_raw.sqlite')
+cur = conn.cursor()
+
+cur.executescript('''
+DROP TABLE IF EXISTS Designs;
+DROP TABLE IF EXISTS Designers;
+DROP TABLE IF EXISTS Studios;
+DROP TABLE IF EXISTS Categories;
+DROP TABLE IF EXISTS Awards;
+
+CREATE TABLE Designs (
+    id  INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+    design_name             TEXT UNIQUE,
+    award_type_id           INTEGER,
+    category_id             INTEGER,
+    design_img_small_link   TEXT,
+    design_page             TEXT,
+    designer_id             INTEGER,
+    designer_page           TEXT,
+    studio_id               INTEGER
+);
+
+CREATE TABLE Designers (
+    id  INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+    designer_name   TEXT UNIQUE
+);
+
+CREATE TABLE Studios (
+    id  INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+    studio_name     TEXT UNIQUE
+);
+
+CREATE TABLE Categories (
+    id  INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+    category_name   TEXT UNIQUE
+);
+
+CREATE TABLE Awards (
+    id  INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+    award_type      TEXT UNIQUE
+);
+''')
+
+# Actual URLs:
 url = "https://competition.adesignaward.com/winners.php"
 root_url = "https://competition.adesignaward.com/"
 
@@ -45,54 +87,44 @@ except urllib.error.URLError as e:
     print(f"Reason: {e.reason}")
 
 
-award_count_total = 0
-platinum_award_count = 0
-golden_award_count = 0
-silver_award_count = 0
-bronze_award_count = 0
-regular_award_count = 0
-
 soup = BeautifulSoup(html, "lxml")
-for tag in soup.find_all("tr", limit=25):
+for tag in soup.find_all("tr"):
     recognition = tag.find(string=re.compile("Award Winner"))
     if recognition is not None:
-        category = recognition[recognition.find("for") + 4 : recognition.find("Category") - 1].strip()
+        category_name = recognition[recognition.find("for") + 4 : recognition.find("Category") - 1].strip()
         design_img_small_link = root_url + tag.find("img").get("src")
         design_page = root_url + tag.find(href=re.compile("design.php")).get("href")
         design_name = tag.find(href=re.compile("design.php")).get_text().strip()
         award_type = recognition[ : recognition.find("A' Design Award")].strip()
         if award_type == "":
             award_type = "Regular"
-        if award_type == "Platinum":
-            platinum_award_count += 1
-        elif award_type == "Golden":
-            golden_award_count += 1
-        elif award_type == "Silver":
-            silver_award_count += 1
-        elif award_type == "Bronze":
-            bronze_award_count += 1
-        elif award_type == "Regular":
-            regular_award_count += 1
         designer_page = root_url + tag.find(href=re.compile("designer.php")).get("href")
         designer_studio_name = tag.find(href=re.compile("designer.php")).get_text()
         designer_name = designer_studio_name[ : designer_studio_name.find("for") - 1]
         studio_name = designer_studio_name[designer_studio_name.find("for") + 4 : ]
-        award_count_total += 1
 
-        print("=========================================")
-        print(f"Category: {category}")
-        print(f"Award Type: {award_type} Award")
-        print(f"Design Name: {design_name}")
-        print(f"Design Image: {design_img_small_link}")
-        print(f"Design Page: {design_page}")
-        print(f"Designer: {designer_name}")
-        print(f"Designer Page: {designer_page}")
-        print(f"Studio/Client/Brand: {studio_name}")
-        print("=========================================\n")
+        cur.execute('''INSERT OR IGNORE INTO Designers (designer_name)
+                                                        VALUES ( ? )''', (designer_name, ))
+        cur.execute('SELECT id FROM Designers WHERE designer_name = ? ', (designer_name, ))
+        designer_id = cur.fetchone()[0]
 
-print(f"Total Award Count: {award_count_total}")
-print(f"Platinum Award Count: {platinum_award_count}")
-print(f"Golden Award Count: {golden_award_count}")
-print(f"Silver Award Count: {silver_award_count}")
-print(f"Bronze Award Count: {bronze_award_count}")
-print(f"Regular Award Count: {regular_award_count}")
+        cur.execute('''INSERT OR IGNORE INTO Studios (studio_name)
+                                                        VALUES ( ? )''', (studio_name, ))
+        cur.execute('SELECT id FROM Studios WHERE studio_name = ? ', (studio_name, ))
+        studio_id = cur.fetchone()[0]
+
+        cur.execute('''INSERT OR IGNORE INTO Categories (category_name)
+                                                        VALUES ( ? )''', (category_name, ))
+        cur.execute('SELECT id FROM Categories WHERE category_name = ? ', (category_name, ))
+        category_id = cur.fetchone()[0]
+
+        cur.execute('''INSERT OR IGNORE INTO Awards (award_type)
+                                                        VALUES ( ? )''', (award_type, ))
+        cur.execute('SELECT id FROM Awards WHERE award_type = ? ', (award_type, ))
+        award_type_id = cur.fetchone()[0]
+
+        cur.execute('''INSERT OR REPLACE INTO Designs
+        (design_name, award_type_id, category_id, design_img_small_link, design_page, designer_id, designer_page, studio_id) 
+        VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )''', (design_name, award_type_id, category_id, design_img_small_link, design_page, designer_id, designer_page, studio_id))
+
+conn.commit()
