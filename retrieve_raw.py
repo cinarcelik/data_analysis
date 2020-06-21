@@ -130,24 +130,34 @@ def read_design_page(dictionary, parser):
 
     Output Dictionary Style:
       {design_id:
-        {Design_Name: award_type,
-         Category: category_name,
-         Designer: designer_name,
-         Designer_ID: designer_id
-         Design_URL: design_page
-         Designer_URL: designer_page},
+        {Design_Name: design_name,
+         Primary_Function: prim_func,
+         Inspiration: inspiration,
+         Project_Description: description,
+         Interaction: interaction,
+         Duration_Location: dur_loc,
+         Fits_Best_Into: fbt_category,
+         Production_Technology: prod_tech,
+         Specifications: specifications,
+         Tags: tags,
+         Research_Abstract: res_abst,
+         Challenge: challenge,
+         Added_Date: add_date,
+         Team_Members: team_members,
+         Image_Credits: img_credits},
       }
     '''
     for design_id in dictionary.keys():
         design_page = dictionary[design_id]["Design_URL"]
         root_url, html = read_URL(design_page)
         soup = BeautifulSoup(html, parser)
+        print(soup.prettify())
 
-        design_page_dict = dict()
-        for tag in soup.find_all("td"):
+        # design_page_dict = dict()
+        # for tag in soup.find_all("td"):
             # mention = tag.find(string=re.compile("DESIGN NAME:")).get_text()
-            
-            print(tag.get_text())
+
+            # print(tag.get_text())
 
             # if mention is not None:
             #     minor_dict = {}
