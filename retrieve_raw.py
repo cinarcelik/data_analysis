@@ -127,52 +127,52 @@ def read_design_page(dictionary, parser):
          Design_URL: design_page
          Designer_URL: designer_page},
       }
-
-    Output Dictionary Style:
-      {design_id:
-        {Design_Name: design_name,
-         Primary_Function: prim_func,
-         Inspiration: inspiration,
-         Project_Description: description,
-         Interaction: interaction,
-         Duration_Location: dur_loc,
-         Fits_Best_Into: fbt_category,
-         Production_Technology: prod_tech,
-         Specifications: specifications,
-         Tags: tags,
-         Research_Abstract: res_abst,
-         Challenge: challenge,
-         Added_Date: add_date,
-         Team_Members: team_members,
-         Image_Credits: img_credits},
-      }
     '''
+    titles_dict = {"DESIGN NAME:": "design_name",
+    "PRIMARY FUNCTION:": "prim_func",
+    "INSPIRATION:": "inspiration",
+    "UNIQUE PROPERTIES / PROJECT DESCRIPTION:": "description",
+    "OPERATION / FLOW / INTERACTION:": "flow",
+    "PROJECT DURATION AND LOCATION:": "dur_loc",
+    "FITS BEST INTO CATEGORY:": "fbt_category",
+    "PRODUCTION / REALIZATION TECHNOLOGY:": "prod_tech",
+    "SPECIFICATIONS / TECHNICAL PROPERTIES:": "specifications",
+    "TAGS:": "tags",
+    "RESEARCH ABSTRACT:": "res_abst",
+    "CHALLENGE:": "challenge",
+    "ADDED DATE:": "add_date",
+    "TEAM MEMBERS": "team_members",
+    "IMAGE CREDITS:": "img_credits",
+    "PATENTS/COPYRIGHTS:": "patents"}
+
     for design_id in dictionary.keys():
         design_page = dictionary[design_id]["Design_URL"]
         root_url, html = read_URL(design_page)
         soup = BeautifulSoup(html, parser)
-        print(soup.prettify())
+        design_image_link = root_url + "/" + f"award-winning-design.php?ID={design_id}"
 
-        # design_page_dict = dict()
-        # for tag in soup.find_all("td"):
-            # mention = tag.find(string=re.compile("DESIGN NAME:")).get_text()
+        design_details_tag = soup.find(text="DESIGN DETAILS").parent
+        design_details_list = []
+        for element in design_details_tag.find_all_next(string=True):
+            element = element.strip()
+            if element == "":
+                continue
+            design_details_list.append(element)
+            if element == "AWARD DETAILS":
+                break
 
-            # print(tag.get_text())
+        design_details_dict = {}
+        details = {}
+        for title, variable in titles_dict.items():
+            if title in design_details_list:
+                details[variable] = design_details_list[design_details_list.index(title) + 1]
 
-            # if mention is not None:
-            #     minor_dict = {}
-            #     design_page = root_url + "/" + tag.find(href=re.compile("design.php")).get("href")
-            #     design_id = design_page[design_page.find("ID=") + 3 : ]
-            #     category_name = mention[mention.find("for") + 4 : mention.find("Category") - 1].strip()
-            #     award_type = mention[ : mention.find("A' Design Award")].strip()
-            #     if award_type == "":
-            #         award_type = "Regular"
-            #     designer_page = root_url + "/" + tag.find(href=re.compile("designer.php")).get("href")
-            #     designer_id = designer_page[designer_page.find("profile=") + 8 : ]
-            #     x_for_y = tag.find(href=re.compile("designer.php")).get_text()
-            #     designer_name = x_for_y[ : x_for_y.find("for") - 1]
+        design_details_dict[design_id] = details
 
-    return design_page_dict
+        print(design_details_dict)
+
+
+    # return titles_dict
 
 
 # def sql_executer(db_file, reset=False, ):
