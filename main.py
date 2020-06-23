@@ -69,12 +69,12 @@ def read_winners_page(root_url, html, parser):
 
     Output Dictionary Style:
       {design_id:
-        {Award: award_type,
-         Category: category_name,
-         Designer: designer_name,
-         Designer_ID: designer_id
-         Design_URL: design_page
-         Designer_URL: designer_page},
+        {"Award": award_type,
+         "Category": category_name,
+         "Designer": designer_name,
+         "Designer_ID": designer_id
+         "Design_URL": design_page
+         "Designer_URL": designer_page},
       }
     '''
     main_dict = dict()
@@ -106,9 +106,93 @@ def read_winners_page(root_url, html, parser):
     return main_dict
 
 
+# def sql_executer(db_file, reset=False):
+#     '''
+#     Inputs:
+#       db_file   - A database file to execute SQL commands into.
+#                   Should be given as: "example.sqlite"
+#       reset     - (Optional) Reset the previous database file
+#                   if it exists. Default: False
+
+#     Action:
+#       Updates, resets or creates a database file if it not exists into
+#       the current folder.
+#     '''
+#     conn = sqlite3.connect(db_file)
+#     cur = conn.cursor()
+
+#     if reset:
+#         cur.executescript('''
+#         DROP TABLE IF EXISTS Designs;
+#         DROP TABLE IF EXISTS Designers;
+#         DROP TABLE IF EXISTS Studios;
+#         DROP TABLE IF EXISTS Categories;
+#         DROP TABLE IF EXISTS Awards;
+#         ''')
+
+#     cur.executescript('''
+#     CREATE TABLE IF NOT EXISTS Designs (
+#         design_id  INTEGER NOT NULL PRIMARY KEY UNIQUE,
+#         design_name             TEXT UNIQUE,
+#         award_type_id           INTEGER,
+#         category_id             INTEGER,
+#         designer_id             INTEGER,
+#         studio_id               INTEGER,
+#         design_page             TEXT,
+#         thumbnail_img_link   TEXT
+#     );
+
+#     CREATE TABLE IF NOT EXISTS Designers (
+#         designer_id  INTEGER NOT NULL PRIMARY KEY UNIQUE,
+#         designer_name   TEXT UNIQUE,
+#         designer_page   TEXT UNIQUE
+#     );
+
+#     CREATE TABLE IF NOT EXISTS Studios (
+#         id  INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+#         studio_name     TEXT UNIQUE
+#     );
+
+#     CREATE TABLE IF NOT EXISTS Categories (
+#         id  INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+#         category_name   TEXT UNIQUE
+#     );
+
+#     CREATE TABLE IF NOT EXISTS Awards (
+#         id  INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+#         award_type      TEXT UNIQUE
+#     );
+#     ''')
+
+#     cur.execute('''INSERT OR IGNORE INTO Awards (award_type)
+#                                                     VALUES ( ? )''', (award_type, ))
+#     cur.execute('SELECT id FROM Awards WHERE award_type = ? ', (award_type, ))
+#     award_type_id = cur.fetchone()[0]
+
+#     cur.execute('''INSERT OR IGNORE INTO Categories (category_name)
+#                                                     VALUES ( ? )''', (category_name, ))
+#     cur.execute('SELECT id FROM Categories WHERE category_name = ? ', (category_name, ))
+#     category_id = cur.fetchone()[0]
+
+#     cur.execute('''INSERT OR IGNORE INTO Designers (designer_id, designer_name, designer_page)
+#                             VALUES ( ?, ?, ? )''', (designer_id, designer_name, designer_page))
+
+#     cur.execute('''INSERT OR IGNORE INTO Studios (studio_name)
+#                                                     VALUES ( ? )''', (studio_name, ))
+#     cur.execute('SELECT id FROM Studios WHERE studio_name = ? ', (studio_name, ))
+#     studio_id = cur.fetchone()[0]
+
+#     cur.execute('''INSERT OR REPLACE INTO Designs
+#     (design_id, design_name, award_type_id, category_id, designer_id, studio_id, design_page, thumbnail_img_link)
+#     VALUES ( ?, ?, ?, ?, ?, ?, ?, ?)''', (design_id, design_name, award_type_id, category_id, designer_id, studio_id, design_page, thumbnail_img_link))
+
+#     conn.commit()
+#     conn.close()
+
+
 def read_design_page(dictionary, parser):
     '''
-    Input:
+    Inputs:
       dictionary    - Winners page dictionary
       parser        - A parser to use to make a soup object with BeautifulSoup.
                       Options are: "html.parser", "lxml", "xml", "html5lib".
@@ -120,12 +204,31 @@ def read_design_page(dictionary, parser):
 
     Input Dictionary Style:
       {design_id:
-        {Award: award_type,
-         Category: category_name,
-         Designer: designer_name,
-         Designer_ID: designer_id
-         Design_URL: design_page
-         Designer_URL: designer_page},
+        {"Award": award_type,
+         "Category": category_name,
+         "Designer": designer_name,
+         "Designer_ID": designer_id
+         "Design_URL": design_page
+         "Designer_URL": designer_page},
+      }
+
+    Output Dictionary Style:
+      {design_id:
+        {"design_name": ... ,
+         "prim_func": ... ,
+         "inspiration": ... ,
+         "description": ... ,
+         "flow": ... ,
+         "dur_loc": ... ,
+         "prod_tech": ... ,
+         "specifications": ... ,
+         "tags": ... ,
+         "res_abst": ... ,
+         "challenge": ... ,
+         "add_date": ... ,
+         "team_members": ... ,
+         "img_credits": ... ,
+         "patents": ... },
       }
     '''
     titles_dict = {"DESIGN NAME:": "design_name",
@@ -134,7 +237,6 @@ def read_design_page(dictionary, parser):
     "UNIQUE PROPERTIES / PROJECT DESCRIPTION:": "description",
     "OPERATION / FLOW / INTERACTION:": "flow",
     "PROJECT DURATION AND LOCATION:": "dur_loc",
-    "FITS BEST INTO CATEGORY:": "fbt_category",
     "PRODUCTION / REALIZATION TECHNOLOGY:": "prod_tech",
     "SPECIFICATIONS / TECHNICAL PROPERTIES:": "specifications",
     "TAGS:": "tags",
@@ -169,10 +271,7 @@ def read_design_page(dictionary, parser):
 
         design_details_dict[design_id] = details
 
-        print(design_details_dict)
-
-
-    # return titles_dict
+        print(design_details_dict, "\n\n")
 
 
 # def sql_executer(db_file, reset=False, ):
@@ -265,7 +364,7 @@ winners_url = "https://competition.adesignaward.com/winners.php"
 
 root_url, winners_html = read_URL(winners_url)
 winners_dict = read_winners_page(root_url, winners_html, "lxml")
-designs_dict = read_design_page(winners_dict, "lxml")
+read_design_page(winners_dict, "lxml")
 # sql_executer("data_raw.sqlite", reset=True)
 
 # for item in winners_dict.items():
