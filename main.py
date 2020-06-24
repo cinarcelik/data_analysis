@@ -106,13 +106,14 @@ def read_winners_page(root_url, html, parser):
     return main_dict
 
 
-# def sql_executer(db_file, reset=False):
+# def sql_executer(dictionary, db_file, reset=False):
 #     '''
 #     Inputs:
-#       db_file   - A database file to execute SQL commands into.
-#                   Should be given as: "example.sqlite"
-#       reset     - (Optional) Reset the previous database file
-#                   if it exists. Default: False
+#       dictionary    - A dictionary of data
+#       db_file       - A database file to execute SQL commands into.
+#                       Should be given as: "example.sqlite"
+#       reset         - (Optional) Reset the previous database file
+#                       if it exists. Default: False
 
 #     Action:
 #       Updates, resets or creates a database file if it not exists into
@@ -214,7 +215,8 @@ def read_design_page(dictionary, parser):
 
     Output Dictionary Style:
       {design_id:
-        {"design_name": ... ,
+        {"image_link": ... ,
+         "design_name": ... ,
          "prim_func": ... ,
          "inspiration": ... ,
          "description": ... ,
@@ -243,7 +245,7 @@ def read_design_page(dictionary, parser):
     "RESEARCH ABSTRACT:": "res_abst",
     "CHALLENGE:": "challenge",
     "ADDED DATE:": "add_date",
-    "TEAM MEMBERS": "team_members",
+    "TEAM MEMBERS (1) :": "team_members",
     "IMAGE CREDITS:": "img_credits",
     "PATENTS/COPYRIGHTS:": "patents"}
 
@@ -265,11 +267,13 @@ def read_design_page(dictionary, parser):
 
         design_details_dict = {}
         details = {}
+        details["image_link"] = design_image_link
         for title, variable in titles_dict.items():
             if title in design_details_list:
                 details[variable] = design_details_list[design_details_list.index(title) + 1]
 
         design_details_dict[design_id] = details
+
 
         print(design_details_dict, "\n\n")
 
