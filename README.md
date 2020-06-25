@@ -19,8 +19,9 @@ from bs4 import BeautifulSoup
 ```
 
 ## To-Do List
-- [x] Repository setup and initial commit - *17.06.2020*
-- [x] Retrieve raw data ------------------- *18.06.2020 - 19.06.2020*
-- [x] Retrieve detailed data -------------- *20.06.2020 -*
-- [ ] Organize all data ------------------- 
-- [ ] Data visualization ------------------ 
+| :--- | :--- |
+| [x] Repository setup and initial commit | *17.06.2020* |
+| [x] Retrieve raw data | *18.06.2020 - 19.06.2020* |
+| [x] Retrieve detailed data | *20.06.2020 -* |
+| [ ] Organize all data | |
+| [ ] Data visualization | |
