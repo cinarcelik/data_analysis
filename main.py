@@ -238,10 +238,132 @@ def read_design_page(dictionary, parser):
       parser        - A parser to use to make a soup object with BeautifulSoup.
                       Options are: "html.parser", "lxml", "xml", "html5lib".
 
-    Output:
-      Reads the given dictionary, uses its Design URLs to retrieve data
-      from them. Then builds and returns another dictionary of the
-      retrieved data.
+    Actions:
+      Reads the given dictionary, uses Design URLs in it to retrieve data
+      about the designs, then builds another super dictionary with the
+      new data, including the input dictionary's keys and values. Calls
+      sql_executer() and writes the final dictionaries ID by ID to a
+      sqlite database file.
+
+    Input Dictionary Style:
+      {design_id:
+        {"award_type": ... ,
+         "category_name": ... ,
+         "designer_name": ... ,
+         "designer_id": ... ,
+         "design_page": ... ,
+         "designer_page": ...},
+      }
+
+    Output Dictionary Style:
+      {design_id:
+        {"image_link": ... ,
+         "team_members": ... ,
+         "design_name": ... ,
+         "prim_func": ... ,
+         "inspiration": ... ,
+         "description": ... ,
+         "flow": ... ,
+         "dur_loc": ... ,
+         "prod_tech": ... ,
+         "specifications": ... ,
+         "tags": ... ,
+         "res_abst": ... ,
+         "challenge": ... ,
+         "add_date": ... ,
+         "img_credits": ... ,
+         "patents": ... ,
+         "award_type": ... ,
+         "category_name": ... ,
+         "designer_name": ... ,
+         "designer_id": ... ,
+         "design_page": ... ,
+         "designer_page": ...},
+      }
+    '''
+    titles_dict = {"DESIGN NAME:": "design_name",
+    "PRIMARY FUNCTION:": "prim_func",
+    "INSPIRATION:": "inspiration",
+    "UNIQUE PROPERTIES / PROJECT DESCRIPTION:": "description",
+    "OPERATION / FLOW / INTERACTION:": "flow",
+    "PROJECT DURATION AND LOCATION:": "dur_loc",
+    "PRODUCTION / REALIZATION TECHNOLOGY:": "prod_tech",
+    "SPECIFICATIONS / TECHNICAL PROPERTIES:": "specifications",
+    "TAGS:": "tags",
+    "RESEARCH ABSTRACT:": "res_abst",
+    "CHALLENGE:": "challenge",
+    "ADDED DATE:": "add_date",
+    "IMAGE CREDITS:": "img_credits",
+    "PATENTS/COPYRIGHTS:": "patents"}
+
+    conn = sqlite3.connect("data.sqlite")
+    cur = conn.cursor()
+
+    for design_id in dictionary.keys():
+        # Check if the details of a design are already written into the database:
+        try:
+            cur.execute("SELECT * FROM Designs WHERE design_id= ?", (design_id, ))
+            d_id = cur.fetchone()[0]
+            print(f"A design with the ID of {d_id} found in the database.")
+            continue
+        except:
+            pass
+
+        design_page = dictionary[design_id]["design_page"]
+        root_url, html = read_URL(design_page)
+        soup = BeautifulSoup(html, parser)
+        design_image_link = root_url + "/" + f"award-winning-design.php?ID={design_id}"
+
+        design_details_tag = soup.find(text="DESIGN DETAILS").parent
+        design_details_list = []
+        for element in design_details_tag.find_all_next(string=True):
+            element = element.strip()
+            if element == "":
+                continue
+            design_details_list.append(element)
+            if element == "AWARD DETAILS":
+                break
+
+        design_details_dict = {}
+        details = {}
+        details["image_link"] = design_image_link
+        string = ''.join(design_details_list)
+        tm_match = re.findall(r"TEAM MEMBERS \(\d*\) :", string)[0]
+        if design_details_list[design_details_list.index(tm_match) + 1] == "IMAGE CREDITS:":
+            details["team_members"] = "-"
+        else:
+            details["team_members"] = design_details_list[design_details_list.index(tm_match) + 1]
+
+        for title, variable in titles_dict.items():
+            if title in design_details_list:
+                try:
+                    details[variable] = design_details_list[design_details_list.index(title) + 1]
+                except IndexError:
+                    details[variable] = "-"
+            else:
+                details[variable] = "-"
+
+        design_details_dict[design_id] = details
+        design_details_dict[design_id].update(dictionary[design_id])
+
+        print(design_details_dict, "\n")
+        sql_executer(design_details_dict, design_id, "data.sqlite")
+        print(f"Details of the design no.{design_id} is written to the database. \n\n")
+
+
+def read_designer_page(dictionary, parser):
+    '''
+    Inputs:
+      dictionary    - Winners page dictionary
+      parser        - A parser to use to make a soup object with BeautifulSoup.
+                      Options are: "html.parser", "lxml", "xml", "html5lib".
+
+    Actions:
+      Reads the given dictionary, uses Designer URLs in it to retrieve data
+      about the designers, then builds another super dictionary with the
+      new data, including the input dictionary's keys and values. Calls
+      sql_executer() and writes the final dictionaries ID by ID to a
+      sqlite database file.
 
     Input Dictionary Style:
       {design_id:
@@ -357,6 +479,7 @@ winners_url = "https://competition.adesignaward.com/winners.php"
 root_url, winners_html = read_URL(winners_url)
 winners_dict = read_winners_page(root_url, winners_html, "lxml")
 read_design_page(winners_dict, "lxml")
+read_designer_page(winners_dict, "lxml")
 
 
 timer_end = timer()
