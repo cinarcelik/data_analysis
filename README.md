@@ -18,10 +18,12 @@ from timeit import default_timer as timer
 from bs4 import BeautifulSoup
 ```
 
-## To-Do List
-| :--- | :--- |
-| [x] Repository setup and initial commit | *17.06.2020* |
-| [x] Retrieve raw data | *18.06.2020 - 19.06.2020* |
-| [x] Retrieve detailed data | *20.06.2020 -* |
-| [ ] Organize all data | |
-| [ ] Data visualization | |
+## Timeline
+| | Started | Ended |
+| :--- | :--- | :--- |
+| Repository setup and initial commit | *17.06.2020* | *17.06.2020* |
+| Retrieve raw data test | *18.06.2020* | *19.06.2020* | 
+| Retrieve detailed data about designs | *20.06.2020*  | *25.06.2020* |
+| Retrieve detailed data about designers | *25.06.2020*  | *-* |
+| Organize all data | *-* | *-* |
+| Data visualization | *-* | *-* |
