@@ -376,29 +376,16 @@ def read_designer_page(dictionary, parser):
       }
 
     Output Dictionary Style:
-      {design_id:
-        {"image_link": ... ,
-         "team_members": ... ,
-         "design_name": ... ,
-         "prim_func": ... ,
-         "inspiration": ... ,
-         "description": ... ,
-         "flow": ... ,
-         "dur_loc": ... ,
-         "prod_tech": ... ,
-         "specifications": ... ,
-         "tags": ... ,
-         "res_abst": ... ,
-         "challenge": ... ,
-         "add_date": ... ,
-         "img_credits": ... ,
-         "patents": ... ,
-         "award_type": ... ,
-         "category_name": ... ,
-         "designer_name": ... ,
-         "designer_id": ... ,
-         "design_page": ... ,
-         "designer_page": ...},
+      {designer_id:
+        {"stat_art": ... ,
+         "organization": ... ,
+         "awards": ... ,
+         "lang_skills": ... ,
+         "hobbies": ... ,
+         "website": ... ,
+         "regs_date": ... ,
+         "country": ... ,
+         "acc_type": ...},
       }
     '''
     titles_dict = {"STATEMENT OF ART": "stat_art",
@@ -425,38 +412,53 @@ def read_designer_page(dictionary, parser):
         #     pass
 
         designer_page = dictionary[design_id]["designer_page"]
+        designer_id = dictionary[design_id]["designer_id"]
         root_url, html = read_URL(designer_page)
         soup = BeautifulSoup(html, parser)
         # designer_image_link = root_url + "/" + f"award-winning-design.php?ID={design_id}"
 
         designer_profiles_tag = soup.find(text="Designer Profiles").parent
-        # designer_details_list = []
-        details_dict = {}
-        details_list = []
+        designer_page_contents_list = []
         for element in designer_profiles_tag.find_all_next(string=True):
             element = element.strip()
-            if element == "" or element == ":":
+            if element == "" or element == ":" or element == ".":
                 continue
-            if element in titles_dict:
-                for detail in element.find_all_next(string=True):
-                    details_list.append(detail)
-                    if detail in titles_dict:
-                        details_dict[titles_dict[element]] = details_list
-                        print(details_dict)
-                        break
             if element == "Press Members:":
                 break
-            # designer_details_list.append(element)
-            print("===", element, "===\n")
-            
-        # designer_details_list = []
-        # for element in design_details_tag.find_all_next(string=True):
-        #     element = element.strip()
-        #     if element == "":
-        #         continue
-        #     design_details_list.append(element)
-        #     if element == "AWARD DETAILS":
-        #         break
+            designer_page_contents_list.append(element)
+
+        print(designer_page_contents_list)
+
+        designer_details_dict = {}
+        designer_details_dict[designer_id] = {}
+        details_list = []
+        index_diff = 0
+        for item_1 in designer_page_contents_list:
+            if item_1 in titles_dict.keys():
+                title_index_1 = designer_page_contents_list.index(item_1)
+                for item_2 in designer_page_contents_list:
+                    if item_2 in titles_dict.keys():
+                        if item_2 == item_1:
+                            continue
+                        title_index_2 = designer_page_contents_list.index(item_2)
+                        index_diff = title_index_2 - title_index_1
+                        if index_diff > 2:
+                            for idx in range(title_index_1 + 1, title_index_2):
+                                details_list.append(designer_page_contents_list[idx])
+                            designer_details_dict[designer_id][titles_dict[item_1]] = details_list
+                            details_list = []
+                            print("index 1st = ", title_index_1)
+                            print("index 2nd = ", title_index_2)
+                            print("index diff = ", index_diff)
+                        elif index_diff > 1:
+                            designer_details_dict[designer_id][titles_dict[item_1]] = designer_page_contents_list[title_index_1 + 1]
+                            print("index 1st = ", title_index_1)
+                            print("index 2nd = ", title_index_2)
+                            print("index diff = ", index_diff)
+
+                        break
+
+        print(designer_details_dict, "\n")
 
         # design_details_dict = {}
         # details = {}
