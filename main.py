@@ -390,10 +390,23 @@ def read_designer_page(dictionary, parser):
     '''
     titles_dict = {"STATEMENT OF ART": "stat_art",
     "ORGANIZATION": "organization",
+    "EDUCATION": "education",
+    "EXPERIENCE": "experience",
+    "PRIVATE EXHIBITIONS": "private_exh",
+    "MIXED EXHIBITIONS": "mixed_exh",
+    "EVENTS": "events",
+    "NON-DESIGN OCCUPATION": "non_des_occ",
     "AWARDS": "awards",
+    "PRESS APPEARANCES": "press_app",
+    "BOOKS": "books",
     "LANGUAGE SKILLS": "lang_skills",
+    "COMPUTER LITERACY": "comp_lit",
+    "COURSES, SEMINARS AND WORKSHOPS:": "cours_sems_wss",
     "HOBBIES": "hobbies",
+    "CLIENTELE": "clientele",
     "WEB SITE": "website",
+    "PORTFOLIO URL": "portfolio_url",
+    "RSS URL": "rss_url",
     "REGISTRATION DATE": "regs_date",
     "COUNTRY": "country",
     "ACCOUNT TYPE": "acc_type"}
@@ -417,12 +430,15 @@ def read_designer_page(dictionary, parser):
         soup = BeautifulSoup(html, parser)
         # designer_image_link = root_url + "/" + f"award-winning-design.php?ID={design_id}"
 
+        # Make list with the usable data from the designer's page to use it later:
         designer_profiles_tag = soup.find(text="Designer Profiles").parent
         designer_page_contents_list = []
         for element in designer_profiles_tag.find_all_next(string=True):
             element = element.strip()
+            # Skip this iteration if the element is just a blank line, a colon or a dot:
             if element == "" or element == ":" or element == ".":
                 continue
+            # Stop filling the list at the "Press Members:" section:
             if element == "Press Members:":
                 break
             designer_page_contents_list.append(element)
@@ -436,10 +452,13 @@ def read_designer_page(dictionary, parser):
         for item_1 in designer_page_contents_list:
             if item_1 in titles_dict.keys():
                 title_index_1 = designer_page_contents_list.index(item_1)
+
+                # Fix for "ACCOUNT TYPE" index. it is an irregular element for the algorithm because it is the last item in the designer_page_contents_list:
+                if item_1 == "ACCOUNT TYPE":
+                    designer_details_dict[designer_id][titles_dict[item_1]] = designer_page_contents_list[title_index_1 + 1]
+
                 for item_2 in designer_page_contents_list:
                     if item_2 in titles_dict.keys():
-                        if item_2 == item_1:
-                            continue
                         title_index_2 = designer_page_contents_list.index(item_2)
                         index_diff = title_index_2 - title_index_1
                         if index_diff > 2:
@@ -447,15 +466,14 @@ def read_designer_page(dictionary, parser):
                                 details_list.append(designer_page_contents_list[idx])
                             designer_details_dict[designer_id][titles_dict[item_1]] = details_list
                             details_list = []
-                            print("index 1st = ", title_index_1)
-                            print("index 2nd = ", title_index_2)
-                            print("index diff = ", index_diff)
+                            print(f"First index = {title_index_1}, Second index = {title_index_2}")
+                            print(f"\t(There are {index_diff - 1} elements between the indexes.)")
                         elif index_diff > 1:
                             designer_details_dict[designer_id][titles_dict[item_1]] = designer_page_contents_list[title_index_1 + 1]
-                            print("index 1st = ", title_index_1)
-                            print("index 2nd = ", title_index_2)
-                            print("index diff = ", index_diff)
-
+                            print(f"First index = {title_index_1}, Second index = {title_index_2}")
+                            print("\t(There is only 1 element between the indexes.)")
+                        else:
+                            continue
                         break
 
         print(designer_details_dict, "\n")
