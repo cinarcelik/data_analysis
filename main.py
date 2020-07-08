@@ -377,7 +377,10 @@ def read_designer_page(dictionary, parser):
 
     Output Dictionary Style:
       {designer_id:
-        {"stat_art": ... ,
+        {"designer_page_name": ... ,
+         "designer_img_url": ... ,
+         "about": ... ,
+         "stat_art": ... ,
          "organization": ... ,
          "awards": ... ,
          "lang_skills": ... ,
@@ -428,7 +431,6 @@ def read_designer_page(dictionary, parser):
         designer_id = dictionary[design_id]["designer_id"]
         root_url, html = read_URL(designer_page)
         soup = BeautifulSoup(html, parser)
-        # designer_image_link = root_url + "/" + f"award-winning-design.php?ID={design_id}"
 
         # Make list with the usable data from the designer's page to use it later:
         designer_profiles_tag = soup.find(text="Designer Profiles").parent
@@ -443,11 +445,48 @@ def read_designer_page(dictionary, parser):
                 break
             designer_page_contents_list.append(element)
 
-        print(designer_page_contents_list)
+        print("\n\nDESIGNER PAGE CONTENTS LIST (designer_page_contents_list):")
+        print(designer_page_contents_list, "\n")
 
         designer_details_dict = {}
         designer_details_dict[designer_id] = {}
         details_list = []
+
+        # Fetch the designer name from the designer's page:
+        # (In some occurences, designer name on the winners page and designer name on the designer's page are different.)
+        # designer_page_name    = designer name on the designer's page
+        # designer_name         = designer name on the winners page
+        designer_page_name = designer_page_contents_list[1].replace(">", "").strip()
+        designer_name = dictionary[design_id]["designer_name"]
+        designer_details_dict[designer_id]["designer_name"] = designer_name
+        if designer_name == designer_page_name:
+            print("\tThe designer name on the designer's page and the winners page are the same.\n")
+        else:
+            print("\tTHE DESIGNER NAME ON THE DESIGNER'S PAGE AND THE WINNERS PAGE ARE DIFFERENT!")
+            print(f"\tName on the winners page:    {designer_name}    <--- Selected one")
+            print(f"\tName on the designer's page: {designer_page_name}\n")
+
+        # Fetch the designer's image url:
+        designer_image_link_whole = soup.find(src=re.compile("designer/"))
+        if designer_image_link_whole is None:
+            print("\tDESIGNER IMAGE NOT FOUND \n")
+        else:
+            designer_image_link = re.findall("designer.*.jpg", str(designer_image_link_whole))[0]
+            designer_image_url = root_url + "/" + designer_image_link
+            print(f"\tDESIGNER IMAGE URL: {designer_image_url} \n")
+            designer_details_dict[designer_id]["designer_img_url"] = designer_image_url
+
+        # Fetch the designer's "About" section:
+        for element in designer_page_contents_list:
+            about_match = re.match("About.*", element)
+            # if there is a match... (if about_match variable is a Match object):
+            if about_match:
+                about_name = about_match.group().strip()    # EX: about_name = "About Nedim Mutevelic"
+                about_name_index = designer_page_contents_list.index(about_name)
+                about_text = designer_page_contents_list[about_name_index + 1].lstrip(":").strip()
+                designer_details_dict[designer_id]["about"] = about_text
+
+        # THE MAIN LIST TO DICTIONARY ACTION:
         index_diff = 0
         for item_1 in designer_page_contents_list:
             if item_1 in titles_dict.keys():
@@ -466,41 +505,19 @@ def read_designer_page(dictionary, parser):
                                 details_list.append(designer_page_contents_list[idx])
                             designer_details_dict[designer_id][titles_dict[item_1]] = details_list
                             details_list = []
-                            print(f"First index = {title_index_1}, Second index = {title_index_2}")
-                            print(f"\t(There are {index_diff - 1} elements between the indexes.)")
+                            # print(f"First index = {title_index_1}, Second index = {title_index_2}")
+                            # print(f"\t(There are {index_diff - 1} elements between the indexes.)")
                         elif index_diff > 1:
                             designer_details_dict[designer_id][titles_dict[item_1]] = designer_page_contents_list[title_index_1 + 1]
-                            print(f"First index = {title_index_1}, Second index = {title_index_2}")
-                            print("\t(There is only 1 element between the indexes.)")
+                            # print(f"First index = {title_index_1}, Second index = {title_index_2}")
+                            # print("\t(There is only 1 element between the indexes.)")
                         else:
                             continue
                         break
 
+        print("DESIGNER DETAILS DICTIONARY (designer_details_dict):")
         print(designer_details_dict, "\n")
 
-        # design_details_dict = {}
-        # details = {}
-        # details["image_link"] = design_image_link
-        # string = ''.join(design_details_list)
-        # tm_match = re.findall(r"TEAM MEMBERS \(\d*\) :", string)[0]
-        # if design_details_list[design_details_list.index(tm_match) + 1] == "IMAGE CREDITS:":
-        #     details["team_members"] = "-"
-        # else:
-        #     details["team_members"] = design_details_list[design_details_list.index(tm_match) + 1]
-
-        # for title, variable in titles_dict.items():
-        #     if title in design_details_list:
-        #         try:
-        #             details[variable] = design_details_list[design_details_list.index(title) + 1]
-        #         except IndexError:
-        #             details[variable] = "-"
-        #     else:
-        #         details[variable] = "-"
-
-        # design_details_dict[design_id] = details
-        # design_details_dict[design_id].update(dictionary[design_id])
-
-        # print(design_details_dict, "\n")
         # sql_executer(design_details_dict, design_id, "data.sqlite")
         # print(f"Details of the designer no.{designer_id} is written to the database. \n\n")
 
