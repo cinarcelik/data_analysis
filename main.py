@@ -486,6 +486,23 @@ def read_designer_page(dictionary, parser):
                 about_text = designer_page_contents_list[about_name_index + 1].lstrip(":").strip()
                 designer_details_dict[designer_id]["about"] = about_text
 
+        # Fetch the designer's "Awards received by ..." and "Runner-Up status designs by ..." sections:
+        # for item in designer_page_contents_list:
+        #     awards_received_match = re.match("Awards received by .*", item)
+        #     if awards_received_match:
+        #         print("\t'Awards Received by ...' FOUND")
+        #         awards_received_title = awards_received_match.group().strip()
+        #         awards_received_title_index = designer_page_contents_list.index(awards_received_title)
+        #     else:
+        #         print("\t'Awards Received by ...' NOT FOUND")
+        #         runnerup_desings_match = re.match("Runner-Up status designs by .*", item)
+        #         if runnerup_desings_match:
+        #             print("\t'Runner-up Status Designs by ...' FOUND")
+        #             runnerup_desings_title = runnerup_desings_match.group().strip()
+        #             title_index_1 = designer_page_contents_list.index(runnerup_desings_title)
+        #         else:
+        #             print("\t'Runner-up Status Designs by ...' NOT FOUND")
+
         # THE MAIN LIST TO DICTIONARY ACTION:
         index_diff = 0
         for item_1 in designer_page_contents_list:
@@ -513,6 +530,7 @@ def read_designer_page(dictionary, parser):
                             # print("\t(There is only 1 element between the indexes.)")
                         else:
                             continue
+
                         break
 
         print("DESIGNER DETAILS DICTIONARY (designer_details_dict):")
