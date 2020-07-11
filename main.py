@@ -445,7 +445,7 @@ def read_designer_page(dictionary, parser):
                 break
             designer_page_contents_list.append(element)
 
-        print("\n\nDESIGNER PAGE CONTENTS LIST (designer_page_contents_list):")
+        print(("\u2bc0" * 20) + " DESIGNER PAGE CONTENTS LIST (designer_page_contents_list): " + ("\u2bc0" * 20))
         print(designer_page_contents_list, "\n")
 
         designer_details_dict = {}
@@ -487,21 +487,33 @@ def read_designer_page(dictionary, parser):
                 designer_details_dict[designer_id]["about"] = about_text
 
         # Fetch the designer's "Awards received by ..." and "Runner-Up status designs by ..." sections:
-        # for item in designer_page_contents_list:
-        #     awards_received_match = re.match("Awards received by .*", item)
-        #     if awards_received_match:
-        #         print("\t'Awards Received by ...' FOUND")
-        #         awards_received_title = awards_received_match.group().strip()
-        #         awards_received_title_index = designer_page_contents_list.index(awards_received_title)
-        #     else:
-        #         print("\t'Awards Received by ...' NOT FOUND")
-        #         runnerup_desings_match = re.match("Runner-Up status designs by .*", item)
-        #         if runnerup_desings_match:
-        #             print("\t'Runner-up Status Designs by ...' FOUND")
-        #             runnerup_desings_title = runnerup_desings_match.group().strip()
-        #             title_index_1 = designer_page_contents_list.index(runnerup_desings_title)
-        #         else:
-        #             print("\t'Runner-up Status Designs by ...' NOT FOUND")
+        awards_received_match = None
+        runnerup_desings_match = None
+        for item in designer_page_contents_list:
+            if awards_received_match is None:
+                awards_received_match = re.match("Awards received by .*", item)
+                if awards_received_match:
+                    print("\t'Awards Received by ...' FOUND")
+                    awards_received_title = awards_received_match.group()
+                    art_index = designer_page_contents_list.index(awards_received_title)
+            if runnerup_desings_match is None:
+                runnerup_desings_match = re.match("Runner-Up status designs by .*", item)
+                if runnerup_desings_match:
+                    print("\t'Runner-up Status Designs by ...' FOUND")
+                    runnerup_desings_title = runnerup_desings_match.group()
+                    rdt_index = designer_page_contents_list.index(runnerup_desings_title)
+
+        if awards_received_match is not None:
+            if runnerup_desings_match is not None:
+                designer_details_dict[designer_id]["awards_received"] = designer_page_contents_list[art_index + 1 : rdt_index]
+                designer_details_dict[designer_id]["runnerup_designs"] = designer_page_contents_list[rdt_index + 1 :]
+            else:
+                designer_details_dict[designer_id]["awards_received"] = designer_page_contents_list[art_index + 1 :]
+        else:
+            if runnerup_desings_match is not None:
+                designer_details_dict[designer_id]["runnerup_designs"] = designer_page_contents_list[rdt_index + 1 :]
+            else:
+                print("\tNOTHING FOUND for 'AWARDS RECEIVED' and 'RUNNER-UP DESIGNS' sections.")
 
         # THE MAIN LIST TO DICTIONARY ACTION:
         index_diff = 0
@@ -533,8 +545,8 @@ def read_designer_page(dictionary, parser):
 
                         break
 
-        print("DESIGNER DETAILS DICTIONARY (designer_details_dict):")
-        print(designer_details_dict, "\n")
+        print("\nDESIGNER DETAILS DICTIONARY (designer_details_dict):")
+        print(designer_details_dict, "\n\n\n")
 
         # sql_executer(design_details_dict, design_id, "data.sqlite")
         # print(f"Details of the designer no.{designer_id} is written to the database. \n\n")
